@@ -1,89 +1,94 @@
 document.addEventListener("DOMContentLoaded", () => {
-    const searchInput = document.getElementById("searchName");
-    const searchButton = document.getElementById("searchBtn");
-    const pokemonNameDisplay = document.getElementById("pokemonName");
-    const pokemonImg = document.getElementById("pokemonImg");
-    const pokemonInfo = document.getElementById("pokemonInfo");
-
-    // Function to fetch Pokémon data from API
-    async function fetchPokemon(pokemonName) {
-        try {
-            const response = await fetch(`https://pokeapi.co/api/v2/pokemon/${pokemonName.toLowerCase()}`);
-            
-            if (!response.ok) {
-                throw new Error("Pokémon not found");
-            }
-
-            const data = await response.json();
-            displayPokemon(data);
-        } catch (error) {
-            showNotFoundMessage();
-        }
-    }
-
-    // Function to display Pokémon data on the Pokedex screen
-    function displayPokemon(data) {
-        // Update Pokémon Name
-        pokemonNameDisplay.textContent = data.name.toUpperCase();
-        pokemonNameDisplay.style.textAlign = "center"; // Center text
-
-        // Update Pokémon Image
-        pokemonImg.src = data.sprites.front_default;
-        pokemonImg.alt = data.name;
-        pokemonImg.style.display = "block"; 
-        pokemonImg.style.margin = "10px auto"; // Center image
-
-        // Clear Previous Attributes
-        pokemonInfo.innerHTML = "";
-
-        // Add Dynamic Attributes
-        let attributes = [
-            `Type: ${data.types.map(type => type.type.name).join(", ")}`,
-            `Height: ${data.height / 10} m`,
-            `Weight: ${data.weight / 10} kg`
-        ];
-
-        attributes.forEach(attr => {
-            let p = document.createElement("p");
-            p.textContent = attr;
-            p.style.textAlign = "center"; // Center text
-            pokemonInfo.appendChild(p);
+    const searchInput       = document.getElementById("searchName");
+    const searchButton      = document.getElementById("searchBtn");
+    const pokemonNameDisplay= document.getElementById("pokemonName");
+    const pokemonImg        = document.getElementById("pokemonImg");
+    const pokemonInfo       = document.getElementById("pokemonInfo");
+  
+    // —— Promise-based fetch (returns a Promise) ——
+    function fetchPokemonPromise(name) {
+      return fetch(`https://pokeapi.co/api/v2/pokemon/${name.toLowerCase()}`)
+        .then(response => {
+          if (!response.ok) {
+            throw new Error("Pokémon not found");
+          }
+          return response.json();
         });
     }
-
-    // Function to show "Pokémon Not Found" message
+  
+    // —— async/await fetch (cleaner syntax) ——
+    async function fetchPokemonAsync(name) {
+      try {
+        const response = await fetch(`https://pokeapi.co/api/v2/pokemon/${name.toLowerCase()}`);
+        if (!response.ok) {
+          throw new Error("Pokémon not found");
+        }
+        const data = await response.json();
+        displayPokemon(data);
+      } catch (error) {
+        showNotFoundMessage();
+      }
+    }
+  
+    // Display logic (shared)
+    function displayPokemon(data) {
+      // Name
+      pokemonNameDisplay.textContent = data.name.toUpperCase();
+      pokemonNameDisplay.style.textAlign = "center";
+  
+      // Image
+      pokemonImg.src = data.sprites.front_default;
+      pokemonImg.alt = data.name;
+      pokemonImg.style.display = "block";
+      pokemonImg.style.margin = "10px auto";
+  
+      // Attributes
+      pokemonInfo.innerHTML = "";
+      const attrs = [
+        `Type: ${data.types.map(t => t.type.name).join(", ")}`,
+        `Height: ${data.height / 10} m`,
+        `Weight: ${data.weight / 10} kg`
+      ];
+      attrs.forEach(attr => {
+        const p = document.createElement("p");
+        p.textContent = attr;
+        p.style.textAlign = "center";
+        pokemonInfo.appendChild(p);
+      });
+    }
+  
+    // Error handling (shared)
     function showNotFoundMessage() {
-    pokemonNameDisplay.textContent = "Pokémon Not Found";
-
-    // Ensure it takes up full space and centers properly
-    pokemonNameDisplay.style.color = "red";
-    pokemonNameDisplay.style.fontWeight = "bold";
-    pokemonNameDisplay.style.fontSize = "20px";
-    pokemonNameDisplay.style.display = "block";
-    pokemonNameDisplay.style.margin = "0"; // Remove unnecessary margins
-
-    // Hide previous Pokémon image
-    pokemonImg.src = "";
-    pokemonImg.alt = "";
-    pokemonImg.style.display = "none"; // Hide image
-
-    // Clear previous details
-    pokemonInfo.innerHTML = "";
-}
-
-
-    // Event Listener for Search Button
-    searchButton.addEventListener("click", () => {
-        const pokemonName = searchInput.value.trim();
-        if (pokemonName !== "") {
-            fetchPokemon(pokemonName);
-        }
+      pokemonNameDisplay.textContent = "Pokémon Not Found";
+      pokemonNameDisplay.style.color = "red";
+      pokemonNameDisplay.style.fontWeight = "bold";
+      pokemonNameDisplay.style.fontSize = "20px";
+      pokemonNameDisplay.style.textAlign = "center";
+  
+      pokemonImg.src = "";
+      pokemonImg.alt = "";
+      pokemonImg.style.display = "none";
+      pokemonInfo.innerHTML = "";
+    }
+  
+    // Central handler
+    function handleSearch() {
+      const name = searchInput.value.trim();
+      if (!name) return;
+  
+      // ▶ Promise-based:
+      fetchPokemonPromise(name)
+        .then(data => displayPokemon(data))
+        .catch(() => showNotFoundMessage());
+  
+      // ◀ Or uncomment to use async/await instead:
+      // fetchPokemonAsync(name);
+    }
+  
+    // Event listeners
+    searchButton.addEventListener("click", handleSearch);
+    searchInput.addEventListener("keypress", e => {
+      if (e.key === "Enter") handleSearch();
     });
-
-    // Allow searching by pressing Enter key
-    searchInput.addEventListener("keypress", (event) => {
-        if (event.key === "Enter") {
-            searchButton.click();
-        }
-    });
-});
+  });
+  
