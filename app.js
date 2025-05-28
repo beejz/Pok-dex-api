@@ -76,12 +76,12 @@ document.addEventListener("DOMContentLoaded", () => {
       const name = searchInput.value.trim();
       if (!name) return;
   
-      // ▶ Promise-based:
+      // Promise-based:
       fetchPokemonPromise(name)
         .then(data => displayPokemon(data))
         .catch(() => showNotFoundMessage());
   
-      // ◀ Or uncomment to use async/await instead:
+      //to use async/await instead:
       // fetchPokemonAsync(name);
     }
   
